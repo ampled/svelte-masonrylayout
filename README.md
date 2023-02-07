@@ -1,5 +1,3 @@
-# svelte-masonrylayout
-
 Svelte wrapper for [masonry-layout](https://masonry.desandro.com/)
 
 [DEMO](https://stackblitz.com/edit/eirikk-svelte-masonry-layout-demo?file=src%2FApp.svelte)
@@ -10,7 +8,7 @@ Svelte wrapper for [masonry-layout](https://masonry.desandro.com/)
 
 ```html
 <script lang="ts">
-	import masonry from '@eirikk/svelte-masonry-layout/action';
+	import MasonryLayout, {masonry} from '@eirikk/svelte-masonry-layout';
 
 	let items = createItems(3);
 
@@ -25,17 +23,25 @@ Svelte wrapper for [masonry-layout](https://masonry.desandro.com/)
 	}
 </script>
 
+<!-- action  -->
 <div use:masonry={{ items, itemSelector: '.grid-item', columnWidth: 300 }}>
-	{#each items as item (item.id)}
-		<div class="grid-item">look at me!!</div>
-	{/each}
+ {#each items as item (item.id)}
+  <div class="grid-item">look at me im in a masonry grid!!</div>
+ {/each}
 </div>
 
+<!-- component -->
+<MasonryLayout {items} masonryOptions={{ itemSelector: '.grid-item', columnWidth: 300 }}>
+ {#each items as item (item.id)}
+  <div class="grid-item">owee me too!!</div>
+ {/each}
+</MasonryLayout>
+
 <style>
-	.grid-item {
-		width: 300px;
-		height: 300px;
-		background-color: hotpink;
-	}
+ .grid-item {
+   width: 300px;
+   height: 300px;
+   background-color: hotpink;
+ }
 </style>
 ```
