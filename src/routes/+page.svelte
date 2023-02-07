@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { masonry } from '$lib';
-	import type { MasonryActionParameters } from '$lib/types';
-	import type Masonry from 'masonry-layout';
+	import type { MasonryActionParameters, Masonry } from '$lib/types';
 
 	function between(min: number, max: number) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
