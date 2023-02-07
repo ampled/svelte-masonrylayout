@@ -8,7 +8,7 @@ Svelte wrapper for [masonry-layout](https://masonry.desandro.com/)
 
 ### Action
 
-```
+```html
 <script lang="ts">
 	import masonry from '@eirikk/svelte-masonry-layout/action';
 
@@ -38,9 +38,4 @@ Svelte wrapper for [masonry-layout](https://masonry.desandro.com/)
 		background-color: hotpink;
 	}
 </style>
-
-```
-
-```
-
 ```
