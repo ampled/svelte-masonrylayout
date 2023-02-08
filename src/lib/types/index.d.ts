@@ -14,13 +14,6 @@ export type OnLayoutCompleteFn = (laidOutItems: any[]) => void;
 export type MasonryActionParameters<T = any> = Prettify<
 	{
 		/**
-		 * Required in addition to nested HTML elements.
-		 *
-		 * Changing this property will trigger the action to update and call
-		 * {@link Masonry.reloadItems|`reloadItems`} and {@link Masonry.layout|`layout`} on the masonry instance.
-		 */
-		items: T[];
-		/**
 		 * If true, the action will call {@link Masonry.reloadItems|`reloadItems`}
 		 * and {@link Masonry.layout|`layout`} on the Masonry instance
 		 * whenever {@link MasonryActionParameters.items|`items`} changes in the parameters.
@@ -57,6 +50,5 @@ export type MasonryActionParameters<T = any> = Prettify<
 >;
 
 export type MasonryLayoutComponentProps<T = any> = {
-	items: T[];
 	masonryOptions: MasonryOptions;
 };

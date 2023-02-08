@@ -9,9 +9,8 @@
 		Masonry,
 		MasonryLayoutComponentProps
 	} from './types';
-	type $$Props = MasonryLayoutComponentProps<(typeof items)[0]>;
+	type $$Props = MasonryLayoutComponentProps;
 
-	export let items: any[];
 	export let masonryOptions: MasonryOptions;
 	let masonryInstance: Masonry | undefined = undefined;
 
@@ -31,7 +30,6 @@
 
 	$: actionParams = {
 		...masonryOptions,
-		items,
 		onLayoutComplete,
 		onInitialized
 	} satisfies MasonryActionParameters;
