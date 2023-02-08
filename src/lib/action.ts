@@ -16,24 +16,24 @@ const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
 
 	function initialize(parameters: MasonryActionParameters) {
 		const options = getMasonryOptionsFromParameters(parameters);
-		const inst = new Masonry(node, options);
-
-		if (parameters.onLayoutComplete) {
-			inst.on?.('layoutComplete', parameters.onLayoutComplete);
-		}
+		const masonry = new Masonry(node, options);
 
 		if (parameters.onInitialized) {
-			inst.once?.('layoutComplete', (items: any[]) => {
-				return parameters.onInitialized?.(instance, items);
+			masonry.once?.('layoutComplete', (items: any[]) => {
+				return parameters.onInitialized?.(masonry, items);
 			});
 		}
 
-		return inst;
+		masonry.layout?.();
+
+		if (parameters.onLayoutComplete) {
+			masonry.on?.('layoutComplete', parameters.onLayoutComplete);
+		}
+
+		return masonry;
 	}
 
 	let instance = initialize(params);
-
-	instance.layout?.();
 
 	return {
 		update(newParameters: MasonryActionParameters) {
@@ -48,12 +48,11 @@ const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
 				instance = initialize(newParams);
 			}
 
-			if (newParams.alwaysReloadAndLayoutOnUpdate) {
-				instance.reloadItems?.();
-				instance.layout?.();
-			}
-
 			if (itemsChanged) {
+				if (newParams.alwaysReloadAndLayoutOnUpdate) {
+					instance.reloadItems?.();
+					instance.layout?.();
+				}
 				newParams.onUpdate?.(instance);
 			}
 		},

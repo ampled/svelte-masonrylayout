@@ -120,13 +120,4 @@
 		border-radius: 10%;
 		padding: 20px;
 	}
-
-	.grid-item:hover,
-	.grid-item:active,
-	.grid-item:focus {
-		transition: transform 0.2s ease-in;
-		transform-origin: top center;
-		transform: scale(1.2, 1.2);
-		z-index: 10;
-	}
 </style>

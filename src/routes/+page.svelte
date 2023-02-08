@@ -2,6 +2,9 @@
 	import type { MasonryActionParameters, Masonry } from '$lib';
 	import { masonry } from '$lib';
 
+	let onInitializedCallbackHasRun = false;
+	let layoutCompleteRuns = 0;
+
 	function between(min: number, max: number) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
@@ -47,18 +50,15 @@
 	}
 
 	function onLayoutComplete(items: any) {
-		console.log('layout complete!');
+		console.log('layoutComplete');
+		layoutCompleteRuns++;
 	}
 
-	let masonryInstance: Masonry;
-	let masonryOptions: MasonryActionParameters = {
-		items: objItems,
-		itemSelector: '.grid-item',
-		columnWidth: 300,
-		horizontalOrder: true,
-		onLayoutComplete,
-		onInitialized: (instance) => (masonryInstance = instance)
-	};
+	function onInitialized(instance: Masonry) {
+		console.log('onInitialize');
+		onInitializedCallbackHasRun = true;
+		masonryInstance = instance;
+	}
 
 	function changeColumnWidth(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -71,27 +71,43 @@
 	const debug = () => {
 		console.log(masonryInstance);
 	};
+
+	let masonryInstance: Masonry;
+	let masonryOptions: MasonryActionParameters = {
+		items: objItems,
+		itemSelector: '.grid-item',
+		columnWidth: 300,
+		horizontalOrder: true,
+		onLayoutComplete,
+		onInitialized,
+		transitionDuration: 0
+	};
 </script>
 
 <main>
 	<button on:click={debug}>debug</button>
-	<button on:click={addItem}>add item</button>
-	<button on:click={prepend}>prepend</button>
+	<button data-testid="add-button" on:click={addItem}>add item</button>
+	<button data-testid="prepend-button" on:click={prepend}>prepend</button>
 	<input type="number" on:change={changeColumnWidth} />
-
-	<!-- <pre>{JSON.stringify(items)}</pre> -->
 
 	<div id="stuff" use:masonry={masonryOptions}>
 		<div class="gutter-sizer" />
 		{#each objItems as item (item.id)}
-			<div class="grid-item" style:width={item.width} style:height={item.height}>
+			<div
+				data-testid="grid-item"
+				class="grid-item"
+				style:width={item.width}
+				style:height={item.height}
+			>
 				{item.id}
 			</div>
 		{/each}
-		<!-- <div class="grid-item">1</div> -->
 	</div>
 
-	end of grid
+	<div>
+		<span data-testid="initialized">{onInitializedCallbackHasRun}</span>
+		<span data-testid="layout-runs">{layoutCompleteRuns}</span>
+	</div>
 </main>
 
 <style>
@@ -124,14 +140,5 @@
 		margin-bottom: 10px;
 		border-radius: 10%;
 		padding: 20px;
-	}
-
-	.grid-item:hover,
-	.grid-item:active,
-	.grid-item:focus {
-		transition: transform 0.2s ease-in;
-		transform-origin: top center;
-		transform: scale(1.2, 1.2);
-		z-index: 10;
 	}
 </style>
