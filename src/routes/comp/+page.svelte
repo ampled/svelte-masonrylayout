@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Masonry, MasonryOptions } from '$lib/types';
+	import type { Masonry, MasonryOptions } from '$lib';
 	import MasonryLayout from '$lib';
 
 	function between(min: number, max: number) {
@@ -81,7 +81,6 @@
 	<!-- <pre>{JSON.stringify(items)}</pre> -->
 
 	<MasonryLayout
-		bind:masonryInstance
 		on:initialized={onInitialized}
 		on:layoutComplete={onLayoutComplete}
 		items={objItems}

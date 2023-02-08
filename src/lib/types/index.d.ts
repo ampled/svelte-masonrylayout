@@ -1,12 +1,12 @@
 import type { Options } from 'masonry-layout';
-import type MasonryC from 'masonry-layout';
+import type Masonry from 'masonry-layout';
+export type { default as Masonry } from 'masonry-layout';
 
 type Prettify<T> = {
 	[K in keyof T]: T[K];
 } & {};
 
 export type MasonryOptions = Prettify<Options>;
-export type Masonry = Prettify<MasonryC & {}>;
 
 export type OnInitializedFn = (instance: Masonry, items: any[]) => void;
 export type OnLayoutCompleteFn = (laidOutItems: any[]) => void;
@@ -15,10 +15,12 @@ export type MasonryActionParameters<T = any> = Prettify<
 	{
 		items: T[];
 		/**
-		 * Calls {@link Masonry.reloadItems|`reloadItems`} and {@link Masonry.layout|`layout`} on the Masonry
-		 * instance whenever {@link MasonryActionParameters.items|`items`} changes.
+		 * If true, the action will call {@link Masonry.reloadItems|`reloadItems`}
+		 * and {@link Masonry.layout|`layout`} on the Masonry instance
+		 * whenever {@link MasonryActionParameters.items|`items`} changes in the parameters.
 		 *
 		 * Defaults to `true`.
+		 * @default true
 		 */
 		alwaysReloadAndLayoutOnUpdate?: boolean;
 		onUpdate?: (masonryInstance: Masonry) => void;
@@ -43,6 +45,5 @@ export type MasonryActionParameters<T = any> = Prettify<
 
 export type MasonryLayoutComponentProps<T = any> = {
 	items: T[];
-	masonryInstance?: readonly Masonry;
 	masonryOptions: MasonryOptions;
 };

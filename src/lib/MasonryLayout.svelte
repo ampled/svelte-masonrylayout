@@ -13,7 +13,7 @@
 
 	export let items: any[];
 	export let masonryOptions: MasonryOptions;
-	export let masonryInstance: Masonry | undefined = undefined;
+	let masonryInstance: Masonry | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		layoutComplete: { items: any[] };
