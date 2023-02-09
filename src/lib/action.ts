@@ -14,7 +14,7 @@ const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
 	const params = { ...defaultParams, ...parameters };
 	let options = getMasonryOptionsFromParameters(params);
 
-	function initialize(parameters: MasonryActionParameters) {
+	function initialize(parameters: MasonryActionParameters): [Masonry, MutationObserver] {
 		const options = getMasonryOptionsFromParameters(parameters);
 		const masonry = new Masonry(node, options);
 
@@ -30,33 +30,36 @@ const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
 			masonry.on?.('layoutComplete', parameters.onLayoutComplete);
 		}
 
-		return masonry;
+		const observer = new MutationObserver(() => {
+			if (parameters.alwaysReloadAndLayoutOnUpdate) {
+				instance.reloadItems?.();
+				instance.layout?.();
+			}
+			parameters.onUpdate?.(instance);
+		});
+
+		observer.observe(node, { childList: true });
+
+		return [masonry, observer];
 	}
 
-	let instance = initialize(params);
+	let [instance, observer] = initialize(params);
 
 	return {
 		update(newParameters: MasonryActionParameters) {
 			const newParams = { ...defaultParams, ...newParameters };
 			const newOptions = getMasonryOptionsFromParameters(newParams);
 			const optionsChanged = !equal(options, newOptions);
-			const itemsChanged = !equal(newParams.items, params.items);
 
 			if (optionsChanged) {
 				options = newOptions;
 				instance.destroy?.();
-				instance = initialize(newParams);
-			}
-
-			if (itemsChanged) {
-				if (newParams.alwaysReloadAndLayoutOnUpdate) {
-					instance.reloadItems?.();
-					instance.layout?.();
-				}
-				newParams.onUpdate?.(instance);
+				observer.disconnect();
+				[instance, observer] = initialize(newParams);
 			}
 		},
 		destroy() {
+			observer.disconnect();
 			instance.destroy?.();
 		}
 	};
