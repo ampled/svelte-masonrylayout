@@ -24,14 +24,14 @@ You can use the exported action or component.
 </script>
 
 <!-- action  -->
-<div use:masonry={{ items, itemSelector: '.grid-item', columnWidth: 300 }}>
+<div use:masonry={{ itemSelector: '.grid-item', columnWidth: 300 }}>
  {#each items as item (item.id)}
   <div class="grid-item">look at me im in a masonry grid!!</div>
  {/each}
 </div>
 
 <!-- component -->
-<MasonryLayout {items} masonryOptions={{ itemSelector: '.grid-item', columnWidth: 300 }}>
+<MasonryLayout masonryOptions={{ itemSelector: '.grid-item', columnWidth: 300 }}>
  {#each items as item (item.id)}
   <div class="grid-item">owee me too!!</div>
  {/each}
