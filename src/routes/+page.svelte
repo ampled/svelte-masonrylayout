@@ -58,8 +58,7 @@
 		objItems = newList;
 	}
 
-	function onLayoutComplete(items: any) {
-		console.log('layoutComplete');
+	function onLayoutComplete(items: any[]) {
 		layoutCompleteRuns++;
 	}
 
