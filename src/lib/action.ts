@@ -10,7 +10,7 @@ const defaultParams: Partial<MasonryActionParameters> = {
 	initLayout: false
 };
 
-const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
+const masonry: Action<HTMLElement, MasonryActionParameters> = (node, parameters) => {
 	const params = { ...defaultParams, ...parameters };
 	let options = getMasonryOptionsFromParameters(params);
 
@@ -63,6 +63,6 @@ const masonry = ((node: HTMLElement, parameters: MasonryActionParameters) => {
 			instance.destroy?.();
 		}
 	};
-}) satisfies Action;
+};
 
 export default masonry;
