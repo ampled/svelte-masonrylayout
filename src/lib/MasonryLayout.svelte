@@ -1,45 +1,39 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import masonry from './action';
-	import type {
-		MasonryOptions,
-		MasonryActionParameters,
-		OnLayoutCompleteFn,
-		OnInitializedFn,
-		Masonry,
-		MasonryLayoutComponentProps
-	} from './types';
-	type $$Props = MasonryLayoutComponentProps;
+  import { type Snippet } from 'svelte';
+  import masonry from './action.js';
+  import type {
+    MasonryActionParameters,
+    OnLayoutCompleteFn,
+    OnInitializedFn,
+    // Masonry,
+    MasonryLayoutComponentProps
+  } from './types/index.js';
+  type Props = MasonryLayoutComponentProps & {
+    children?: Snippet;
+    layoutComplete?: OnLayoutCompleteFn;
+    initialized?: OnInitializedFn;
+  };
 
-	interface Props {
-		masonryOptions: MasonryOptions;
-		children?: import('svelte').Snippet;
-	}
+  let { masonryOptions, layoutComplete, initialized, children }: Props = $props();
+  // let masonryInstance: Masonry | undefined = undefined;
 
-	let { masonryOptions, children }: Props = $props();
-	let masonryInstance: Masonry | undefined = undefined;
+  const onLayoutComplete: OnLayoutCompleteFn = (items) => {
+    layoutComplete?.(items);
+    // dispatch('layoutComplete', { items });
+  };
 
-	const dispatch = createEventDispatcher<{
-		layoutComplete: { items: any[] };
-		initialized: { instance: Masonry; items: any[] };
-	}>();
+  const onInitialized: OnInitializedFn = (instance, items) => {
+    // masonryInstance = instance;
+    initialized?.(instance, items);
+  };
 
-	const onLayoutComplete: OnLayoutCompleteFn = (items) => {
-		dispatch('layoutComplete', { items });
-	};
-
-	const onInitialized: OnInitializedFn = (instance, items) => {
-		masonryInstance = instance;
-		dispatch('initialized', { instance, items });
-	};
-
-	let actionParams = $derived({
-		...masonryOptions,
-		onLayoutComplete,
-		onInitialized
-	} satisfies MasonryActionParameters);
+  let actionParams = $derived({
+    ...masonryOptions,
+    onLayoutComplete,
+    onInitialized
+  } satisfies MasonryActionParameters);
 </script>
 
 <div use:masonry={actionParams}>
-	{@render children?.()}
+  {@render children?.()}
 </div>
