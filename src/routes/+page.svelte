@@ -2,8 +2,8 @@
 	import type { MasonryActionParameters, Masonry } from '$lib';
 	import { masonry } from '$lib';
 
-	let onInitializedCallbackHasRun = false;
-	let layoutCompleteRuns = 0;
+	let onInitializedCallbackHasRun = $state(false);
+	let layoutCompleteRuns = $state(0);
 
 	function between(min: number, max: number) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
@@ -23,7 +23,7 @@
 		return dim + 'px';
 	}
 
-	let objItems = createItems(3);
+	let objItems = $state(createItems(3));
 
 	function createItems(amount: number) {
 		let items = [];
@@ -81,26 +81,26 @@
 	};
 
 	let masonryInstance: Masonry;
-	let masonryOptions: MasonryActionParameters = {
+	let masonryOptions: MasonryActionParameters = $state({
 		itemSelector: '.grid-item',
 		columnWidth: 300,
 		horizontalOrder: true,
 		onLayoutComplete,
 		onInitialized
-	};
+	});
 </script>
 
 <main>
-	<button on:click={debug}>debug</button>
-	<button data-testid="add-button" on:click={addItem}>add item</button>
-	<button data-testid="prepend-button" on:click={prepend}>prepend</button>
-	<button data-testid="remove-first" on:click={removeFirst}>remove first</button>
-	<button data-testid="remove-last" on:click={removeLast}>remove last</button>
+	<button onclick={debug}>debug</button>
+	<button data-testid="add-button" onclick={addItem}>add item</button>
+	<button data-testid="prepend-button" onclick={prepend}>prepend</button>
+	<button data-testid="remove-first" onclick={removeFirst}>remove first</button>
+	<button data-testid="remove-last" onclick={removeLast}>remove last</button>
 
-	<input type="number" on:change={changeColumnWidth} />
+	<input type="number" onchange={changeColumnWidth} />
 
 	<div id="stuff" use:masonry={masonryOptions}>
-		<div class="gutter-sizer" />
+		<div class="gutter-sizer"></div>
 		{#each objItems as item, index (item.id)}
 			<div
 				data-testid="grid-item"

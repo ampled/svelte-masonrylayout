@@ -24,7 +24,7 @@
 		return dim + 'px';
 	}
 
-	let objItems = createItems(3);
+	let objItems = $state(createItems(3));
 
 	function createItems(amount: number) {
 		let items = [];
@@ -55,11 +55,11 @@
 	}
 
 	let masonryInstance: Masonry;
-	let masonryOptions: MasonryOptions = {
+	let masonryOptions: MasonryOptions = $state({
 		itemSelector: '.grid-item',
 		columnWidth: 300,
 		horizontalOrder: true
-	};
+	});
 
 	function changeColumnWidth(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -73,10 +73,10 @@
 </script>
 
 <main>
-	<button on:click={debug}>debug</button>
-	<button on:click={addItem}>add item</button>
-	<button on:click={prepend}>prepend</button>
-	<input type="number" on:change={changeColumnWidth} />
+	<button onclick={debug}>debug</button>
+	<button onclick={addItem}>add item</button>
+	<button onclick={prepend}>prepend</button>
+	<input type="number" onchange={changeColumnWidth} />
 
 	<!-- <pre>{JSON.stringify(items)}</pre> -->
 

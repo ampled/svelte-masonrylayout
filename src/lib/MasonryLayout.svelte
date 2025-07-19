@@ -11,7 +11,12 @@
 	} from './types';
 	type $$Props = MasonryLayoutComponentProps;
 
-	export let masonryOptions: MasonryOptions;
+	interface Props {
+		masonryOptions: MasonryOptions;
+		children?: import('svelte').Snippet;
+	}
+
+	let { masonryOptions, children }: Props = $props();
 	let masonryInstance: Masonry | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
@@ -28,13 +33,13 @@
 		dispatch('initialized', { instance, items });
 	};
 
-	$: actionParams = {
+	let actionParams = $derived({
 		...masonryOptions,
 		onLayoutComplete,
 		onInitialized
-	} satisfies MasonryActionParameters;
+	} satisfies MasonryActionParameters);
 </script>
 
 <div use:masonry={actionParams}>
-	<slot />
+	{@render children?.()}
 </div>
