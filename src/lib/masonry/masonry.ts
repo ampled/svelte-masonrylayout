@@ -271,7 +271,6 @@ class Masonry extends Outlayer.create('masonry') {
   }
 
   off(event: MasonryEvent, listener: EventListener) {
-    console.log('off!!', event);
     return super.off(event, listener);
   }
 
