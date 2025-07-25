@@ -1,27 +1,24 @@
 /*!
- * Masonry v4.2.2
- * Cascading grid layout library
- * https://masonry.desandro.com
- * MIT License
- * by David DeSandro
+ * This is a slightly modified TypeScript port of Masonry by David Desandro
+ * https://masonry.desandro.com/
  */
 
-import { Outlayer, type OutlayerOptions } from './outlayer';
-import { getSize } from '../get-size';
-import { Item, type Position } from './item';
+import type { EventListener } from './ev-emitter.js';
+import { Outlayer, type OutlayerOptions } from './outlayer/outlayer.js';
+import { getSize } from './get-size.js';
+import { Item, type Position } from './outlayer/item.js';
 
 // ----- Types ----- //
 
-export interface MasonryOptions extends OutlayerOptions {
-  // measurements
-  columnWidth?: string | number | Element;
-  gutter?: string | number | Element;
+type MasonryEvent = 'layoutComplete' | 'removeComplete';
 
-  // layout
+export interface MasonryOptions extends OutlayerOptions {
   fitWidth?: boolean;
   horizontalOrder?: boolean;
 
-  // deprecated
+  /**
+   * @deprecated use `fitWidth`
+   */
   isFitWidth?: boolean;
 }
 
@@ -38,7 +35,7 @@ class Masonry extends Outlayer.create('masonry') {
   // add fitWidth to compatOptions
   static override compatOptions = {
     ...Outlayer.compatOptions,
-    fitWidth: 'isFitWidth',
+    fitWidth: 'isFitWidth'
   };
 
   // instance properties
@@ -55,14 +52,11 @@ class Masonry extends Outlayer.create('masonry') {
   constructor(elem: string | Element, options: MasonryOptions) {
     super(elem, options);
 
-    this.colYs = [];
-    this._resetLayout();
-
-    console.log('ctr this.colYs:', this.colYs);
+    // this.colYs = [];
+    // this._resetLayout();
   }
 
   _resetLayout(): void {
-    console.log('_resetLayout!');
     this.getSize();
     this._getMeasurement('columnWidth', 'outerWidth');
     this._getMeasurement('gutter', 'outerWidth');
@@ -109,9 +103,7 @@ class Masonry extends Outlayer.create('masonry') {
   getContainerWidth(): void {
     // container is parent if fit width
     const isFitWidth = this._getOption('fitWidth');
-    const container = isFitWidth
-      ? (this.element.parentNode as Element)
-      : this.element;
+    const container = isFitWidth ? (this.element.parentNode as Element) : this.element;
 
     // check that this.size and size are there
     // IE8 triggers resize on body size change, so they might not be
@@ -135,16 +127,10 @@ class Masonry extends Outlayer.create('masonry') {
         : this._getTopColPosition;
       const colPosition = colPosMethod.apply(this, [colSpan, item]);
 
-      console.log('Before setting:', {
-        colYs: this.colYs,
-        colPosition,
-        itemHeight: item.size!.outerHeight,
-      });
-
       // position the brick
       const position: Position = {
         x: this.columnWidth * colPosition.col,
-        y: colPosition.y,
+        y: colPosition.y
       };
 
       // apply setHeight to necessary columns
@@ -153,11 +139,6 @@ class Masonry extends Outlayer.create('masonry') {
       for (let i = colPosition.col; i < setMax; i++) {
         this.colYs[i] = setHeight;
       }
-
-      console.log('After setting:', {
-        colYs: this.colYs,
-        setHeight,
-      });
 
       return position;
     }
@@ -171,7 +152,7 @@ class Masonry extends Outlayer.create('masonry') {
 
     return {
       col: colGroup.indexOf(minimumY),
-      y: minimumY,
+      y: minimumY
     };
   }
 
@@ -217,7 +198,7 @@ class Masonry extends Outlayer.create('masonry') {
 
     return {
       col: col,
-      y: this._getColGroupY(col, colSpan),
+      y: this._getColGroupY(col, colSpan)
     };
   }
 
@@ -239,8 +220,7 @@ class Masonry extends Outlayer.create('masonry') {
 
     // set colYs to bottom of the stamp
     const isOriginTop = this._getOption('originTop');
-    const stampMaxY =
-      (isOriginTop ? offset.top : offset.bottom) + stampSize.outerHeight;
+    const stampMaxY = (isOriginTop ? offset.top : offset.bottom) + stampSize.outerHeight;
     for (let i = firstCol; i <= lastCol; i++) {
       this.colYs[i] = Math.max(stampMaxY, this.colYs[i]);
     }
@@ -248,10 +228,9 @@ class Masonry extends Outlayer.create('masonry') {
 
   override _getContainerSize(): { width?: number; height?: number } | null {
     if (this.colYs) {
-      console.log('this.colYs:', this.colYs);
       this.maxY = Math.max(...this.colYs);
       const size: { width?: number; height?: number } = {
-        height: this.maxY,
+        height: this.maxY
       };
 
       if (this._getOption('fitWidth')) {
@@ -282,9 +261,27 @@ class Masonry extends Outlayer.create('masonry') {
     this.getContainerWidth();
     return previousWidth !== this.containerWidth;
   }
+
+  once(event: MasonryEvent, listener: EventListener) {
+    return super.once(event, listener);
+  }
+
+  on(event: MasonryEvent, listener: EventListener) {
+    return super.on(event, listener);
+  }
+
+  off(event: MasonryEvent, listener: EventListener) {
+    console.log('off!!', event);
+    return super.off(event, listener);
+  }
+
+  /**
+   * set options
+   */
+  option(opts: MasonryOptions): void {
+    this.options = { ...this.options, ...opts };
+  }
 }
 
 export default Masonry;
-
-// Also export the class directly
 export { Masonry };

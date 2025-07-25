@@ -1,41 +1,23 @@
 <script lang="ts">
-  import {
-    Pane,
-    Button,
-    ButtonGrid,
-    type ButtonGridClickEvent,
-    Checkbox,
-    Slider,
-    AutoObject,
-    Folder
-  } from 'svelte-tweakpane-ui';
-  import { SvelteMasonry, type MasonryAttachmentOptions } from '$lib/index.js';
+  import { SvelteMasonry } from '$lib/attachment.svelte.js';
+  import type { MasonryAttachmentOptions } from '$lib/types.js';
+  import { getMilliseconds } from '$lib/util.js';
   import { onMount, tick } from 'svelte';
   import { addToPanel } from 'svelte-inspect-value';
   import { scale } from 'svelte/transition';
   const colors = ['hotpink', 'orange', 'green', 'lightblue', 'salmon'];
-  const sizes = [
-    { w: 160, h: 160 },
-    // { w: 160, h: 160 },
-    // { w: 328, h: 160 },
-    // { h: 328, w: 160 },
-    // { h: 328, w: 160 },
-    { w: 328, h: 328 },
-    { w: 328, h: 328 * 1.5 + 4 },
-    { w: 160 * 3 + 8 * 2, h: 328 }
-    // { w: 160 * 4 + 8 * 3, h: 328 }
-  ];
 
   let gridWidth = $state(1000);
   let objItems = $state<ReturnType<typeof createItems>>([]);
-  let options = $state<MasonryAttachmentOptions>({
+  const options = $state<MasonryAttachmentOptions>({
     itemSelector: '.grid-item',
-    columnWidth: 160,
+    columnWidth: '.grid-sizer',
     horizontalOrder: false,
     initLayout: false,
-    stagger: 0,
+    stagger: 10,
+    gutter: '.gutter-sizer',
     transitionDuration: 500,
-    gutter: 8,
+    percentPosition: true,
     stamp: '.stamp',
     hiddenStyle: {
       opacity: 0,
@@ -47,7 +29,7 @@
     }
   });
 
-  const masonry = new SvelteMasonry(
+  const mas = new SvelteMasonry(
     () => objItems,
     () => options
   );
@@ -56,14 +38,19 @@
     objItems = createItems(3);
   });
 
-  addToPanel('masonry:', () => masonry);
+  $effect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    objItems.length;
+    const remove = addToPanel('masonry:', () => mas.instance);
+    return remove;
+  });
   addToPanel('items', () => objItems);
 
   $effect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     gridWidth;
     setTimeout(() => {
-      masonry.instance?.layout();
+      mas.instance?.layout();
     }, 300);
   });
 
@@ -75,7 +62,7 @@
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  function createWidths() {
+  function _createWidths() {
     const baseWidth = 160,
       gutter = 8;
     return [
@@ -86,7 +73,7 @@
     ];
   }
 
-  function createHeights() {
+  function _createHeights() {
     const base = 180,
       gutter = 8;
     return [base, base * 2 + gutter, base * 3 + gutter * 2];
@@ -97,27 +84,21 @@
   }
 
   function _randomW() {
-    // const dims = [160, 328];
-    const dim = getRandom(createWidths());
-
-    return dim + 'px';
+    return getRandom(['', 'width2', 'width3']);
   }
 
   function _randomH() {
     // const dims = [112, 240, 472];
-    const dim = getRandom(createHeights());
-
-    return dim + 'px';
+    return getRandom(['height2', 'height3', 'height4']);
   }
 
   function createItems(amount: number) {
     let items = [];
 
     for (let x = 0; x < amount; x++) {
-      const { w, h } = getRandom(sizes);
       items.push({
-        width: w + 'px',
-        height: h + 'px',
+        width: _randomW(),
+        height: _randomH(),
         bgColor: getRandom(colors),
         id: Math.random().toString(),
         content: between(0, 1000).toString(),
@@ -132,54 +113,43 @@
     objItems.push(...createItems(1));
   }
 
-  function append(num: number) {
-    objItems.push(...createItems(num));
-  }
-
   function appendMultiple() {
     objItems.push(...createItems(3));
   }
 
-  function prepend(num = 1) {
-    objItems.unshift(...createItems(num));
+  function prepend() {
+    objItems.unshift(...createItems(1));
   }
 
-  function removeFirst(num = 1) {
-    objItems.splice(0, num);
-
-    masonry.instance?.layout();
+  function removeFirst() {
+    const [_first, ...newList] = objItems;
+    objItems = newList;
+    mas.instance?.layout();
   }
 
-  function removeLast(n = 1) {
-    // remove last n items from objItems
-    objItems.splice(objItems.length - n, n);
+  function removeLast() {
+    const newList = objItems.slice(0, objItems.length - 1);
+    objItems = newList;
   }
 
   const debug = () => {
-    console.log(masonry.instance);
+    console.log(mas.instance);
   };
 
-  function removerandom(num: number = 1) {
-    let items = [...objItems];
-
-    for (let i = 0; i < num; i++) {
-      const random = getRandom(items);
-      items = items.filter((obj) => obj !== random);
-    }
-    objItems = items;
+  function removerandom() {
+    const random = getRandom(objItems);
+    objItems = objItems.filter((obj) => obj !== random);
   }
 
   function removeObj(item: (typeof objItems)[number]) {
     objItems = objItems.filter((obj) => obj !== item);
   }
 
-  function random(num = 1) {
-    for (let i = 0; i < num; i++) {
-      const randomIndex = between(0, objItems.length);
-      const newItem = createItems(1)[0];
-      newItem.bgColor = '#888';
-      objItems.splice(randomIndex, 0, newItem);
-    }
+  function addRandom() {
+    const randomIndex = between(0, objItems.length);
+    const newItem = createItems(1)[0];
+    newItem.bgColor = '#888';
+    objItems.splice(randomIndex, 0, newItem);
   }
 
   async function embiggen(index: number) {
@@ -187,75 +157,19 @@
     let newItem = { ...item, width: 160 * 4 + 8 * 3 + 'px', height: 328 * 2 + 8 + 'px' };
     objItems[index] = newItem;
     await tick();
-    masonry.instance?.layout();
-  }
-
-  const cmds = {
-    append,
-    prepend,
-    random,
-    'remove-first': removeFirst,
-    'remove-last': removeLast,
-    'remove-random': removerandom
-  } as Record<string, (num?: number) => void>;
-
-  function ongridclick(e: ButtonGridClickEvent): void {
-    const [command, amount = '1'] = e.detail.label.split(' ');
-    const num = parseInt(amount);
-
-    console.log({ command, num });
-
-    if (typeof num !== 'number') return;
-
-    const fn = cmds[command];
-
-    if (typeof fn !== 'function') {
-      console.warn(`button grid fn ${command} not found`);
-      return;
-    }
-
-    fn(num);
+    mas.instance?.layout();
   }
 </script>
-
-<Pane position="fixed">
-  <ButtonGrid
-    on:click={ongridclick}
-    columns={2}
-    buttons={[
-      'append',
-      'append 3',
-      'prepend',
-      'prepend 3',
-      'random',
-      'random 3',
-      'remove-random',
-      'remove-random 3',
-      'remove-first',
-      'remove-first 3',
-      'remove-last',
-      'remove-last 3'
-    ]}
-  />
-  <Button on:click={() => random()} title="add random" />
-  <Checkbox label="horizontal" bind:value={masonry.horizontalOrder!} />
-  <Slider bind:value={options.gutter as number} label="gutter" min={0} max={16} step={1} />
-  <Slider
-    bind:value={options.columnWidth as number}
-    label="column width"
-    min={0}
-    max={300}
-    step={1}
-  />
-  <Folder title="auto">
-    <AutoObject bind:object={options} />
-  </Folder>
-</Pane>
 
 <main>
   <button onclick={debug}>debug</button>
   <button data-testid="add-button" onclick={addItem}>append</button>
+  <button onclick={addRandom}>add random</button>
   <button onclick={appendMultiple}>append 3</button>
+  <button data-testid="prepend-button" onclick={prepend}>prepend</button>
+  <button data-testid="remove-first" onclick={removeFirst}>remove first</button>
+  <button onclick={removerandom}>remove random</button>
+  <button data-testid="remove-last" onclick={removeLast}>remove last</button>
 
   <label>
     column width
@@ -266,29 +180,38 @@
     grid width
     <input type="number" bind:value={gridWidth} step={168} />
   </label>
+
+  <!-- <label>
+    gutter
+    <input type="number" bind:value={options.gutter} step={1} />
+  </label> -->
   <label>
     dur
     <input style="max-width: 6ch" type="number" bind:value={options.transitionDuration} step={50} />
   </label>
 
   <label>
+    horiz
+    <input type="checkbox" bind:checked={options.horizontalOrder} />
+  </label>
+  <label>
     origin top
-    <input type="checkbox" bind:checked={masonry.originTop} />
+    <input type="checkbox" bind:checked={mas.originTop} />
   </label>
   <!-- style:max-width={gridWidth + 'px'} -->
 
-  <div class="grid" {@attach masonry.grid()} style:opacity={masonry.ready ? 1 : 0}>
+  <div class="grid" {@attach mas.grid()} style:opacity={mas.ready ? 1 : 0}>
+    <div class="grid-sizer"></div>
     <div class="gutter-sizer"></div>
 
-    {#each masonry.items as item, index (item.id)}
+    {#each mas.items as item, index (item.id)}
       <div
         data-testid="grid-item"
-        class="grid-item"
+        class={['grid-item', item.width, item.height]}
         style:width={item.width}
         style:height={item.height}
         style:background-color={item.bgColor}
-        style:margin-bottom={masonry.gutter + 'px'}
-        out:scale={{ duration: masonry.transitionTimeMs * 2 }}
+        out:scale={{ duration: getMilliseconds(options.transitionDuration ?? 0) / 2 }}
       >
         <!-- style:margin-bottom={mas.gutter + 'px'} -->
         <div style="position: relative; width: 100%; height: 100%">
@@ -316,12 +239,12 @@
 </main>
 
 <style>
-  /* :global(html, body) {
+  :global(html, body) {
     width: 100%;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-  } */
+  }
 
   button {
     padding: 4px;
@@ -337,21 +260,18 @@
   }
 
   .grid {
-    /* background-color: #333; */
+    background-color: #333;
     transition:
       max-width 300ms ease-in-out,
       opacity 50ms ease-in;
-    outline: 1px solid #333;
+    /* outline: 1px solid #333; */
     /* width: 960px; */
     /* max-width: 984px; */
     margin-left: auto;
     margin-right: auto;
     overflow: visible;
-  }
-
-  .gutter-sizer {
-    width: 10px;
-    background-color: blue;
+    max-width: 1200px;
+    margin-bottom: 300px;
   }
 
   .grid-item {
@@ -363,16 +283,43 @@
     font-family: monospace;
     font-size: 1rem;
     box-sizing: border-box;
-    height: 300px;
-    width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     background-color: hotpink;
-    /* border: 2px solid greenyellow; */
-    margin-bottom: 8px;
     border-radius: 8px;
     padding: 8px;
+    height: 120px;
+    float: left;
+    border: 2px solid #333;
+    border-color: hsla(0, 0%, 0%, 0.5);
+  }
+
+  .gutter-sizer {
+    width: 0.5%;
+  }
+
+  .grid-sizer,
+  .grid-item {
+    width: 30%;
+    margin-bottom: 4px;
+  }
+
+  .width2 {
+    width: 30%;
+  }
+  .width3 {
+    width: 30%;
+  }
+
+  .height2 {
+    height: 200px;
+  }
+  .height3 {
+    height: 260px;
+  }
+  .height4 {
+    height: 360px;
   }
 </style>

@@ -1,39 +1,33 @@
-<script lang="ts">
+<script lang="ts" generics="Element extends string = 'div', Item extends unknown = unknown">
   import { type Snippet } from 'svelte';
-  import masonry from './action.js';
-  import type {
-    MasonryActionParameters,
-    OnLayoutCompleteFn,
-    OnInitializedFn,
-    // Masonry,
-    MasonryLayoutComponentProps
-  } from './types/index.js';
-  type Props = MasonryLayoutComponentProps & {
+  import type { SvelteHTMLElements } from 'svelte/elements';
+
+  import type { MasonryOptions } from './types.js';
+  import { SvelteMasonry } from './attachment.svelte.js';
+
+  type Props = {
+    masonryOptions: MasonryOptions;
+    items: Item[];
+    ele?: Element;
     children?: Snippet;
-    layoutComplete?: OnLayoutCompleteFn;
-    initialized?: OnInitializedFn;
-  };
+  } & SvelteHTMLElements[Element];
 
-  let { masonryOptions, layoutComplete, initialized, children }: Props = $props();
-  // let masonryInstance: Masonry | undefined = undefined;
+  let {
+    items,
+    masonryOptions,
+    layoutComplete,
+    initialized,
+    ele = 'div' as Element,
+    children,
+    ...rest
+  }: Props = $props();
 
-  const onLayoutComplete: OnLayoutCompleteFn = (items) => {
-    layoutComplete?.(items);
-    // dispatch('layoutComplete', { items });
-  };
-
-  const onInitialized: OnInitializedFn = (instance, items) => {
-    // masonryInstance = instance;
-    initialized?.(instance, items);
-  };
-
-  let actionParams = $derived({
-    ...masonryOptions,
-    onLayoutComplete,
-    onInitialized
-  } satisfies MasonryActionParameters);
+  const masonry = new SvelteMasonry(
+    () => items,
+    () => masonryOptions
+  );
 </script>
 
-<div use:masonry={actionParams}>
+<svelte:element this={ele} {@attach masonry.grid()} {...rest}>
   {@render children?.()}
-</div>
+</svelte:element>

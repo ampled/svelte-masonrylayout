@@ -4,7 +4,8 @@
  * MIT License
  */
 
-export type EventListener = (...args: unknown[]) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type EventListener = (...args: any[]) => void;
 
 export class EvEmitter {
   _events = new Map<string, EventListener[]>();

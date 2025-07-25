@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Masonry, MasonryOptions } from '$lib/index.js';
-  import MasonryLayout from '$lib/index.js';
+  import type { MasonryOptions } from '$lib/index.js';
+  import { MasonryLayout } from '$lib/index.js';
 
   function between(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -46,15 +46,7 @@
     // masonryOptions = { ...masonryOptions };
   }
 
-  function onLayoutComplete() {
-    console.log('onLayoutComplete!');
-  }
-
-  function onInitialized(instance: Masonry) {
-    masonryInstance = instance;
-  }
-
-  let masonryInstance: Masonry;
+  // let masonryInstance: Masonry;
   let masonryOptions: MasonryOptions = $state({
     itemSelector: '.grid-item',
     columnWidth: 300,
@@ -67,44 +59,24 @@
     masonryOptions = { ...masonryOptions, columnWidth: value };
   }
 
-  const debug = () => {
-    console.log(masonryInstance);
-  };
+  // const debug = () => {
+  //   console.log(masonryInstance);
+  // };
 </script>
 
-<main>
-  <button onclick={debug}>debug</button>
-  <button onclick={addItem}>add item</button>
-  <button onclick={prepend}>prepend</button>
-  <input type="number" onchange={changeColumnWidth} />
+<button onclick={addItem}>add item</button>
+<button onclick={prepend}>prepend</button>
+<input type="number" onchange={changeColumnWidth} />
 
-  <!-- <pre>{JSON.stringify(items)}</pre> -->
-
-  <MasonryLayout initialized={onInitialized} layoutComplete={onLayoutComplete} {masonryOptions}>
-    {#each objItems as item (item.id)}
-      <div class="grid-item" style:width={item.width} style:height={item.height}>
-        {item.id}
-      </div>
-    {/each}
-  </MasonryLayout>
-</main>
+<MasonryLayout items={objItems} {masonryOptions}>
+  {#each objItems as item (item.id)}
+    <div class="grid-item" style:width={item.width} style:height={item.height}>
+      {item.id}
+    </div>
+  {/each}
+</MasonryLayout>
 
 <style>
-  :global(html, body) {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-
-  main {
-    height: 100%;
-    overflow-y: auto;
-    width: 100%;
-    background-color: black;
-    color: white;
-  }
-
   .grid-item {
     box-sizing: border-box;
     height: 300px;
@@ -114,5 +86,9 @@
     margin-bottom: 10px;
     border-radius: 10%;
     padding: 20px;
+  }
+
+  button {
+    color: white;
   }
 </style>

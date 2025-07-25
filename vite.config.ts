@@ -1,10 +1,15 @@
 import devtoolsJson from 'vite-plugin-devtools-json';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import { kitRoutes } from 'vite-plugin-kit-routes';
 
 export default defineConfig({
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  plugins: [sveltekit(), (devtoolsJson as unknown as Function)()],
+  plugins: [
+    sveltekit(),
+    kitRoutes({ generated_file_path: 'src/devlib/ROUTES.ts' }),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    (devtoolsJson as unknown as Function)()
+  ],
   test: {
     projects: [
       {

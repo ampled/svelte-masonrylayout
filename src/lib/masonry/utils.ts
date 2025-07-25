@@ -5,6 +5,8 @@
  * MIT license
  */
 
+import { BROWSER } from 'esm-env';
+
 // ----- Types ----- //
 
 export interface ConstructorWithElement<T = any> {
@@ -45,17 +47,14 @@ export function modulo(num: number, div: number): number {
 /**
  * Turn element or nodeList into an array
  */
-export function makeArray<T>(
-  obj: T | T[] | ArrayLike<T> | null | undefined
-): T[] {
+export function makeArray<T>(obj: T | T[] | ArrayLike<T> | null | undefined): T[] {
   // use object if already an array
   if (Array.isArray(obj)) return obj;
 
   // return empty array if undefined or null. #6
   if (obj === null || obj === undefined) return [];
 
-  const isArrayLike =
-    typeof obj === 'object' && typeof (obj as any).length === 'number';
+  const isArrayLike = typeof obj === 'object' && typeof (obj as any).length === 'number';
   // convert nodeList to array
   if (isArrayLike) return [...(obj as unknown as Array<T>)];
 
@@ -163,10 +162,7 @@ export function debounceMethod<T extends Record<string, any>>(
   const method = _class.prototype[methodName];
   const timeoutName = (methodName as string) + 'Timeout';
 
-  _class.prototype[methodName] = function (
-    this: T & Record<string, any>,
-    ...args: any[]
-  ) {
+  _class.prototype[methodName] = function (this: T & Record<string, any>, ...args: any[]) {
     clearTimeout(this[timeoutName]);
 
     (this as any)[timeoutName] = setTimeout(() => {
@@ -209,43 +205,39 @@ export function toDashed(str: string): string {
  * htmlInit( Widget, 'widgetName' )
  * options are parsed from data-namespace-options
  */
-export function htmlInit<T>(
-  WidgetClass: ConstructorWithElement<T>,
-  namespace: string
-): void {
-  docReady(() => {
-    const dashedNamespace = toDashed(namespace);
-    const dataAttr = 'data-' + dashedNamespace;
-    const dataAttrElems = document.querySelectorAll(`[${dataAttr}]`);
-    // const jQuery = window.jQuery;
+export function htmlInit<T>(WidgetClass: ConstructorWithElement<T>, namespace: string): void {
+  if (BROWSER)
+    docReady(() => {
+      const dashedNamespace = toDashed(namespace);
+      const dataAttr = 'data-' + dashedNamespace;
+      const dataAttrElems = document.querySelectorAll(`[${dataAttr}]`);
+      // const jQuery = window.jQuery;
 
-    Array.from(dataAttrElems).forEach(elem => {
-      const attr = elem.getAttribute(dataAttr);
-      let options: any;
+      Array.from(dataAttrElems).forEach((elem) => {
+        const attr = elem.getAttribute(dataAttr);
+        let options: any;
 
-      try {
-        options = attr && JSON.parse(attr);
-      } catch (error) {
-        // log error, do not initialize
-        if (console) {
-          console.error(
-            `Error parsing ${dataAttr} on ${elem.className}: ${error}`
-          );
+        try {
+          options = attr && JSON.parse(attr);
+        } catch (error) {
+          // log error, do not initialize
+          if (console) {
+            console.error(`Error parsing ${dataAttr} on ${elem.className}: ${error}`);
+          }
+          return;
         }
-        return;
-      }
 
-      // initialize
+        // initialize
 
-      new WidgetClass(elem, options);
+        new WidgetClass(elem, options);
 
-      // // make available via $().data('namespace')
-      // if (jQuery) {
-      //   //@ts-expect-error asdf
-      //   jQuery.data(elem, namespace, instance);
-      // }
+        // // make available via $().data('namespace')
+        // if (jQuery) {
+        //   //@ts-expect-error asdf
+        //   jQuery.data(elem, namespace, instance);
+        // }
+      });
     });
-  });
 }
 
 // ----- Default export ----- //
@@ -262,5 +254,5 @@ export default {
   debounceMethod,
   docReady,
   toDashed,
-  htmlInit,
+  htmlInit
 };

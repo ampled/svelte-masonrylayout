@@ -5,16 +5,10 @@
  * MIT license
  */
 
-import { EvEmitter } from '../ev-emitter';
-import { getSize, type SizeInfo } from '../get-size';
-import * as utils from '../utils';
-import {
-  Item,
-  type Layout,
-  type LayoutOptions,
-  type CSSStyle,
-  type Position,
-} from './item';
+import { EvEmitter } from '../ev-emitter.js';
+import { getSize, type SizeInfo } from '../get-size.js';
+import * as utils from '../utils.js';
+import { Item, type Layout, type LayoutOptions, type CSSStyle, type Position } from './item.js';
 
 // declare global {
 //   interface Window {
@@ -25,22 +19,65 @@ import {
 // ----- Types ----- //
 
 export interface OutlayerOptions extends LayoutOptions {
+  /**
+   * CSS styles that are applied to the container element.
+   * @default { position: 'relative' }
+   */
   containerStyle?: CSSStyle;
+  /**
+   * Enables layout on initialization. Enabled by default initLayout: true.
+   * Set to `false` to disable layout on initialization, so you can use methods or add events before the initial layout.
+   * @default true
+   */
   initLayout?: boolean;
+  /**
+   * Controls the horizontal flow of the layout.
+   *
+   * Set to `false` for right-to-left layouts.
+   * @default true
+   */
   originLeft?: boolean;
+  /**
+   * Controls the vertical flow of the layout.
+   *
+   * Set to `false` for bottom-up layouts. It’s like Tetris!
+   * @default true
+   */
   originTop?: boolean;
+  /**
+   * Adjusts sizes and positions when window is resized.
+   *
+   * @default true
+   */
   resize?: boolean;
+  /**
+   * @default true
+   */
   resizeContainer?: boolean;
   transitionDuration?: string | number;
   hiddenStyle?: CSSStyle;
   visibleStyle?: CSSStyle;
+  /**
+   * Specifies which child elements will be used as item elements in the layout.
+   */
   itemSelector?: string;
   stamp?: string | Element | Element[];
   stagger?: string | number;
   layoutInstant?: boolean;
-  // measurements
+  /**
+   * Aligns items to a horizontal grid.
+   *
+   * If not set, the outer width of the first item will be used.
+   */
   columnWidth?: string | number | Element;
   rowHeight?: string | number | Element;
+  /**
+   * Adds horizontal space between item elements.
+   *
+   * Can be a number for pixels, a selector for a gutter sizer element, or an element.
+   *
+   * To set vertical space between elements, use CSS rule `margin-bottom` on grid items.
+   */
   gutter?: string | number | Element;
 }
 
@@ -80,14 +117,11 @@ export interface ElementOffset {
 export interface OutlayerStatic {
   new (element: string | Element, options?: OutlayerOptions): Outlayer;
   namespace: string;
-  defaults: OutlayerDefaults;
+  defaults: OutlayerOptions;
   compatOptions: Record<string, string>;
   Item: typeof Item;
   data(elem: string | Element): Outlayer | undefined;
-  create(
-    namespace: string,
-    options?: Partial<OutlayerOptions>
-  ): typeof Outlayer;
+  create(namespace: string, options?: Partial<OutlayerOptions>): typeof Outlayer;
 }
 
 // ----- Helpers ----- //
@@ -102,7 +136,7 @@ const instances = new Map<number, Outlayer>();
 // how many milliseconds are in each unit
 const msUnits: Record<string, number> = {
   ms: 1,
-  s: 1000,
+  s: 1000
 };
 
 // munge time-like parameter into millisecond number
@@ -132,8 +166,9 @@ export class Outlayer extends EvEmitter implements Layout {
   // default options
   static defaults: OutlayerDefaults = {
     containerStyle: {
-      position: 'relative',
+      position: 'relative'
     },
+    gutter: 0,
     initLayout: true,
     originLeft: true,
     originTop: true,
@@ -142,12 +177,12 @@ export class Outlayer extends EvEmitter implements Layout {
     transitionDuration: '0.4s',
     hiddenStyle: {
       opacity: 0,
-      transform: 'scale(0.001)',
+      transform: 'scale(0.001)'
     },
     visibleStyle: {
       opacity: 1,
-      transform: 'scale(1)',
-    },
+      transform: 'scale(1)'
+    }
   };
 
   static compatOptions: Record<string, string> = {
@@ -158,7 +193,7 @@ export class Outlayer extends EvEmitter implements Layout {
     originLeft: 'isOriginLeft',
     originTop: 'isOriginTop',
     resize: 'isResizeBound',
-    resizeContainer: 'isResizingContainer',
+    resizeContainer: 'isResizingContainer'
   };
 
   // instance properties
@@ -187,10 +222,7 @@ export class Outlayer extends EvEmitter implements Layout {
     this.element = queryElement;
 
     // options
-    this.options = utils.extend(
-      {},
-      (this.constructor as typeof Outlayer).defaults
-    );
+    this.options = utils.extend({}, (this.constructor as typeof Outlayer).defaults);
     this.option(options || {});
 
     // add id for Outlayer.getFromElement
@@ -212,7 +244,7 @@ export class Outlayer extends EvEmitter implements Layout {
    * set options
    */
   option(opts: OutlayerOptions): void {
-    utils.extend(this.options, opts);
+    this.options = { ...this.options, ...opts };
   }
 
   /**
@@ -221,8 +253,7 @@ export class Outlayer extends EvEmitter implements Layout {
   _getOption(option: string): boolean {
     const Constructor = this.constructor as typeof Outlayer;
     const oldOption = Constructor.compatOptions[option];
-    return oldOption &&
-      this.options[oldOption as keyof OutlayerOptions] !== undefined
+    return oldOption && this.options[oldOption as keyof OutlayerOptions] !== undefined
       ? (this.options[oldOption as keyof OutlayerOptions] as boolean)
       : (this.options[option as keyof OutlayerOptions] as boolean);
   }
@@ -235,10 +266,7 @@ export class Outlayer extends EvEmitter implements Layout {
     this.stamp(this.options.stamp);
     // set container style
     if (this.options.containerStyle) {
-      utils.extend(
-        (this.element as HTMLElement).style,
-        this.options.containerStyle
-      );
+      utils.extend((this.element as HTMLElement).style, this.options.containerStyle);
     }
 
     // bind resize method
@@ -265,6 +293,7 @@ export class Outlayer extends EvEmitter implements Layout {
     const items: Item[] = [];
     for (let i = 0; i < itemElems.length; i++) {
       const elem = itemElems[i];
+      (elem as HTMLElement).dataset['masi'] = i.toString();
       const item = new ItemClass(elem, this);
       items.push(item);
     }
@@ -283,7 +312,7 @@ export class Outlayer extends EvEmitter implements Layout {
    * getter method for getting item elements
    */
   getItemElements(): Element[] {
-    return this.items.map(item => item.element);
+    return this.items.map((item) => item.element);
   }
 
   // ----- init & layout ----- //
@@ -297,8 +326,7 @@ export class Outlayer extends EvEmitter implements Layout {
 
     // don't animate first layout
     const layoutInstant = this.options.layoutInstant;
-    const isInstant =
-      layoutInstant !== undefined ? layoutInstant : !this._isLayoutInited;
+    const isInstant = layoutInstant !== undefined ? layoutInstant : !this._isLayoutInited;
     this.layoutItems(this.items, isInstant);
 
     // flag for initialized
@@ -358,7 +386,7 @@ export class Outlayer extends EvEmitter implements Layout {
    * you may want to skip over some items
    */
   _getItemsForLayout(items: Item[]): Item[] {
-    return items.filter(item => !(item as any).isIgnored);
+    return items.filter((item) => !(item as any).isIgnored);
   }
 
   /**
@@ -373,7 +401,7 @@ export class Outlayer extends EvEmitter implements Layout {
 
     const queue: LayoutPosition[] = [];
 
-    items.forEach(item => {
+    items.forEach((item) => {
       // get x/y object from method
       const position = this._getItemLayoutPosition(item);
       if (position) {
@@ -382,7 +410,7 @@ export class Outlayer extends EvEmitter implements Layout {
           item,
           x: position.x,
           y: position.y,
-          isInstant: isInstant || (item as any).isLayoutInstant,
+          isInstant: isInstant || (item as any).isLayoutInstant
         });
       }
     });
@@ -393,11 +421,10 @@ export class Outlayer extends EvEmitter implements Layout {
   /**
    * get item layout position
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _getItemLayoutPosition(_item: Item): Position | undefined {
     return {
       x: 0,
-      y: 0,
+      y: 0
     };
   }
 
@@ -427,13 +454,7 @@ export class Outlayer extends EvEmitter implements Layout {
   /**
    * Sets position of item in DOM
    */
-  _positionItem(
-    item: Item,
-    x: number,
-    y: number,
-    isInstant?: boolean,
-    i?: number
-  ): void {
+  _positionItem(item: Item, x: number, y: number, isInstant?: boolean, i?: number): void {
     if (isInstant) {
       // if not transition, just set CSS
       item.goTo(x, y);
@@ -496,8 +517,7 @@ export class Outlayer extends EvEmitter implements Layout {
     }
 
     measure = Math.max(measure, 0);
-    (this.element as HTMLElement).style[isWidth ? 'width' : 'height'] =
-      measure + 'px';
+    (this.element as HTMLElement).style[isWidth ? 'width' : 'height'] = measure + 'px';
   }
 
   /**
@@ -523,7 +543,7 @@ export class Outlayer extends EvEmitter implements Layout {
     };
 
     // bind callback
-    items.forEach(item => {
+    items.forEach((item) => {
       item.once(eventName, tick);
     });
   }
@@ -571,7 +591,7 @@ export class Outlayer extends EvEmitter implements Layout {
 
     this.stamps = this.stamps.concat(stampElements);
     // ignore
-    stampElements.forEach(elem => this.ignore(elem));
+    stampElements.forEach((elem) => this.ignore(elem));
   }
 
   /**
@@ -583,7 +603,7 @@ export class Outlayer extends EvEmitter implements Layout {
       return;
     }
 
-    stampElements.forEach(elem => {
+    stampElements.forEach((elem) => {
       // filter out removed stamp elements
       utils.removeFrom(this.stamps, elem);
       this.unignore(elem);
@@ -610,7 +630,7 @@ export class Outlayer extends EvEmitter implements Layout {
     }
 
     this._getBoundingRect();
-    this.stamps.forEach(stamp => this._manageStamp(stamp));
+    this.stamps.forEach((stamp) => this._manageStamp(stamp));
   }
 
   // update boundingLeft / Top
@@ -622,15 +642,13 @@ export class Outlayer extends EvEmitter implements Layout {
       left: boundingRect.left + size.paddingLeft + size.borderLeftWidth,
       top: boundingRect.top + size.paddingTop + size.borderTopWidth,
       right: boundingRect.right - (size.paddingRight + size.borderRightWidth),
-      bottom:
-        boundingRect.bottom - (size.paddingBottom + size.borderBottomWidth),
+      bottom: boundingRect.bottom - (size.paddingBottom + size.borderBottomWidth)
     };
   }
 
   /**
    * @param stamp
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _manageStamp(_stamp: Element): void {
     // Override in subclasses
   }
@@ -646,7 +664,7 @@ export class Outlayer extends EvEmitter implements Layout {
       left: boundingRect.left - thisRect.left - size.marginLeft,
       top: boundingRect.top - thisRect.top - size.marginTop,
       right: thisRect.right - boundingRect.right - size.marginRight,
-      bottom: thisRect.bottom - boundingRect.bottom - size.marginBottom,
+      bottom: thisRect.bottom - boundingRect.bottom - size.marginBottom
     };
   }
 
@@ -711,6 +729,7 @@ export class Outlayer extends EvEmitter implements Layout {
     if (items.length) {
       this.items = this.items.concat(items);
     }
+
     return items;
   }
 
@@ -820,7 +839,7 @@ export class Outlayer extends EvEmitter implements Layout {
     }
     const elements = utils.makeArray(elems);
     const items: Item[] = [];
-    elements.forEach(elem => {
+    elements.forEach((elem) => {
       const item = this.getItem(elem);
       if (item) {
         items.push(item);
@@ -843,7 +862,7 @@ export class Outlayer extends EvEmitter implements Layout {
       return;
     }
 
-    removeItems.forEach(item => {
+    removeItems.forEach((item) => {
       item.remove();
       // remove item from collection
       utils.removeFrom(this.items, item);
@@ -863,7 +882,7 @@ export class Outlayer extends EvEmitter implements Layout {
     style.width = '';
 
     // destroy items
-    this.items.forEach(item => {
+    this.items.forEach((item) => {
       item.destroy();
     });
 
@@ -872,15 +891,6 @@ export class Outlayer extends EvEmitter implements Layout {
     const id = (this.element as any).outlayerGUID;
     instances.delete(id); // remove reference to instance by id
     delete (this.element as any).outlayerGUID;
-
-    // // remove data for jQuery
-    // const jQuery = window.jQuery;
-    // if (jQuery) {
-    //   jQuery.removeData(
-    //     this.element,
-    //     (this.constructor as typeof Outlayer).namespace
-    //   );
-    // }
   }
 
   // -------------------------- data -------------------------- //

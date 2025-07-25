@@ -3,8 +3,9 @@
  * Outlayer Item
  */
 
-import { EvEmitter } from '../ev-emitter';
-import { getSize, type SizeInfo } from '../get-size';
+import { BROWSER } from 'esm-env';
+import { EvEmitter } from '../ev-emitter.js';
+import { getSize, type SizeInfo } from '../get-size.js';
 
 // ----- helpers ----- //
 
@@ -17,18 +18,16 @@ function isEmptyObj(obj: Record<string, any>): boolean {
 
 // -------------------------- CSS3 support -------------------------- //
 
-const docElemStyle = document.documentElement.style;
+const docElemStyle = BROWSER ? document.documentElement.style : false;
 
 const transitionProperty =
-  typeof docElemStyle.transition === 'string'
-    ? 'transition'
-    : 'WebkitTransition';
+  docElemStyle && typeof docElemStyle.transition === 'string' ? 'transition' : 'WebkitTransition';
 const transformProperty =
-  typeof docElemStyle.transform === 'string' ? 'transform' : 'WebkitTransform';
+  docElemStyle && typeof docElemStyle.transform === 'string' ? 'transform' : 'WebkitTransform';
 
 const transitionEndEvent = {
   WebkitTransition: 'webkitTransitionEnd',
-  transition: 'transitionend',
+  transition: 'transitionend'
 }[transitionProperty];
 
 // cache all vendor properties that could have vendor prefix
@@ -37,7 +36,7 @@ const vendorProperties: Record<string, string> = {
   transition: transitionProperty,
   transitionDuration: transitionProperty + 'Duration',
   transitionProperty: transitionProperty + 'Property',
-  transitionDelay: transitionProperty + 'Delay',
+  transitionDelay: transitionProperty + 'Delay'
 };
 
 // -------------------------- Types -------------------------- //
@@ -104,7 +103,7 @@ export class Item extends EvEmitter {
     this.layout = layout;
     this.position = {
       x: 0,
-      y: 0,
+      y: 0
     };
 
     this._create();
@@ -115,11 +114,11 @@ export class Item extends EvEmitter {
     this._transn = {
       ingProperties: {},
       clean: {},
-      onEnd: {},
+      onEnd: {}
     };
 
     this.css({
-      position: 'absolute',
+      position: 'absolute'
     });
   }
 
@@ -191,8 +190,7 @@ export class Item extends EvEmitter {
     const xProperty = isOriginLeft ? 'left' : 'right';
     const xResetProperty = isOriginLeft ? 'right' : 'left';
 
-    const x = (this.position.x +
-      (layoutSize[xPadding as keyof SizeInfo] as number)) as number;
+    const x = (this.position.x + (layoutSize[xPadding as keyof SizeInfo] as number)) as number;
     // set in percentage or pixels
     style[xProperty] = this.getXValue(x);
     // reset other property
@@ -203,8 +201,7 @@ export class Item extends EvEmitter {
     const yProperty = isOriginTop ? 'top' : 'bottom';
     const yResetProperty = isOriginTop ? 'bottom' : 'top';
 
-    const y = (this.position.y +
-      (layoutSize[yPadding as keyof SizeInfo] as number)) as number;
+    const y = (this.position.y + (layoutSize[yPadding as keyof SizeInfo] as number)) as number;
     // set in percentage or pixels
     style[yProperty] = this.getYValue(y);
     // reset other property
@@ -253,9 +250,9 @@ export class Item extends EvEmitter {
     this.transition({
       to: transitionStyle,
       onTransitionEnd: {
-        transform: this.layoutPosition.bind(this),
+        transform: this.layoutPosition.bind(this)
       },
-      isCleaning: true,
+      isCleaning: true
     });
   }
 
@@ -274,7 +271,9 @@ export class Item extends EvEmitter {
     this.layoutPosition();
   }
 
-  moveTo = this._transitionTo.bind(this);
+  moveTo(x: number, y: number) {
+    return this._transitionTo(x, y);
+  }
 
   setPosition(x: number, y: number): void {
     this.position.x = parseFloat(x.toString());
@@ -301,9 +300,7 @@ export class Item extends EvEmitter {
    */
   transition(args: TransitionArgs): void {
     // redirect to nonTransition if no transition duration
-    if (
-      !parseFloat(this.layout.options.transitionDuration?.toString() || '0')
-    ) {
+    if (!parseFloat(this.layout.options.transitionDuration?.toString() || '0')) {
       this._nonTransition(args);
       return;
     }
@@ -345,10 +342,9 @@ export class Item extends EvEmitter {
   // dash before all cap letters, including first for
   // WebkitTransform => -webkit-transform
   toDashedAll(str: string): string {
-    return str.replace(/([A-Z])/g, match => '-' + match.toLowerCase());
+    return str.replace(/([A-Z])/g, (match) => '-' + match.toLowerCase());
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   enableTransition(_style: CSSStyle): void {
     // HACK changing transitionProperty during a transition
     // will cause transition to jump
@@ -366,7 +362,7 @@ export class Item extends EvEmitter {
     this.css({
       transitionProperty: transitionProps,
       transitionDuration: duration || '0ms',
-      transitionDelay: this.staggerDelay,
+      transitionDelay: this.staggerDelay
     });
 
     // listen for transition end event
@@ -385,7 +381,7 @@ export class Item extends EvEmitter {
 
   // properties that I munge to make my life easier
   dashedVendorProperties: Record<string, string> = {
-    '-webkit-transform': 'transform',
+    '-webkit-transform': 'transform'
   };
 
   ontransitionend(event: TransitionEvent): void {
@@ -396,8 +392,7 @@ export class Item extends EvEmitter {
 
     const _transition = this._transn;
     // get property name of transitioned property, convert to prefix-free
-    const propertyName =
-      this.dashedVendorProperties[event.propertyName] || event.propertyName;
+    const propertyName = this.dashedVendorProperties[event.propertyName] || event.propertyName;
 
     // remove property that has completed transitioning
     delete _transition.ingProperties[propertyName];
@@ -448,7 +443,7 @@ export class Item extends EvEmitter {
     this.css({
       transitionProperty: '',
       transitionDuration: '',
-      transitionDelay: '',
+      transitionDelay: ''
     });
   }
 
@@ -497,16 +492,14 @@ export class Item extends EvEmitter {
     const options = this.layout.options;
 
     const onTransitionEnd: Record<string, () => void> = {};
-    const transitionEndProperty =
-      this.getHideRevealTransitionEndProperty('visibleStyle');
-    onTransitionEnd[transitionEndProperty] =
-      this.onRevealTransitionEnd.bind(this);
+    const transitionEndProperty = this.getHideRevealTransitionEndProperty('visibleStyle');
+    onTransitionEnd[transitionEndProperty] = this.onRevealTransitionEnd.bind(this);
 
     this.transition({
       from: options.hiddenStyle,
       to: options.visibleStyle ?? {},
       isCleaning: true,
-      onTransitionEnd,
+      onTransitionEnd
     });
   }
 
@@ -521,9 +514,7 @@ export class Item extends EvEmitter {
   /**
    * get style property use for hide/reveal transition end
    */
-  getHideRevealTransitionEndProperty(
-    styleProperty: 'hiddenStyle' | 'visibleStyle'
-  ): string {
+  getHideRevealTransitionEndProperty(styleProperty: 'hiddenStyle' | 'visibleStyle'): string {
     const optionStyle = this.layout.options[styleProperty];
     if (!optionStyle) return 'opacity';
 
@@ -549,17 +540,15 @@ export class Item extends EvEmitter {
     const options = this.layout.options;
 
     const onTransitionEnd: Record<string, () => void> = {};
-    const transitionEndProperty =
-      this.getHideRevealTransitionEndProperty('hiddenStyle');
-    onTransitionEnd[transitionEndProperty] =
-      this.onHideTransitionEnd.bind(this);
+    const transitionEndProperty = this.getHideRevealTransitionEndProperty('hiddenStyle');
+    onTransitionEnd[transitionEndProperty] = this.onHideTransitionEnd.bind(this);
 
     this.transition({
       from: options.visibleStyle,
       to: options.hiddenStyle ?? {},
       // keep hidden stuff hidden
       isCleaning: true,
-      onTransitionEnd,
+      onTransitionEnd
     });
   }
 
@@ -580,7 +569,7 @@ export class Item extends EvEmitter {
       top: '',
       bottom: '',
       transition: '',
-      transform: '',
+      transform: ''
     });
   }
 }
